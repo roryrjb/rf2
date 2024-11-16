@@ -1,8 +1,3 @@
-#define _BSD_SOURCE
-#define _DEFAULT_SOURCE
-
-#define _XOPEN_SOURCE 700
-
 #include <ctype.h>
 
 #include <errno.h>
@@ -12,7 +7,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#ifdef _WIN32
 #include "dirent/include/dirent.h"
 #include "getopt/getopt.h"
 #include <direct.h>
@@ -21,15 +15,6 @@
 #define RFIGNORE_PATTERN "%s\\%s"
 #define HOME_ENV_VAR "USERPROFILE"
 #define MAXPATHLEN 1024
-#else
-#include <dirent.h>
-#include <fnmatch.h>
-#include <getopt.h>
-#include <sys/param.h>
-#include <unistd.h>
-#define RFIGNORE_PATTERN "%s/%s"
-#define HOME_ENV_VAR "HOME"
-#endif
 
 #include "ignore.h"
 #include "include/common/common.h"
@@ -66,11 +51,7 @@ static int is_child(char *dirname) {
 }
 
 static int match(char *spec, const char *filename) {
-#ifdef _WIN32
 	return !PathMatchSpecA(filename, spec);
-#else
-	return fnmatch(spec, filename, 0);
-#endif
 }
 
 static int excluded(const char *name) {
@@ -204,11 +185,7 @@ int main(int argc, char **argv) {
 	char cwd[MAXPATHLEN];
 	int unmatched_error = 0;
 
-#ifdef _WIN32
 	if (_getcwd(cwd, MAXPATHLEN) == NULL) {
-#else
-	if (getcwd(cwd, MAXPATHLEN) == NULL) {
-#endif
 		perror("getcwd");
 		exit(EXIT_FAILURE);
 	}
