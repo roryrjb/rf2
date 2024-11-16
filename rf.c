@@ -19,7 +19,7 @@
 #include "ignore.h"
 #include "include/common/common.h"
 
-#define VERSION "0.0.6"
+#define VERSION "2.0.0-alpha"
 #define RFIGNORE ".rfignore"
 
 struct ignores *global_ignores;
