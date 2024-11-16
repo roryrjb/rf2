@@ -89,7 +89,7 @@ static int recurse_find(char **patterns, int *pattern_count, const char *dirname
 			strcat_s(full_path, MAXPATHLEN, path);
 
 			if (full_path[strlen(full_path) - 1] != '\\') {
-				strcat_s(full_path, MAXPATHLEN, "\\");
+				strcat_s(full_path, MAXPATHLEN, "\\\\");
 			}
 
 			strcat_s(full_path, MAXPATHLEN, entry->d_name);
