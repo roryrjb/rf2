@@ -1,6 +1,7 @@
 #include <ctype.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,32 +50,24 @@ static int is_child(char *dirname) {
 	return 1;
 }
 
-static int match(char *spec, const char *filename) {
-	return !PathMatchSpecA(filename, spec);
-}
-
-static int excluded(const char *name) {
+static bool excluded(const char *name) {
 	if (global_ignores != NULL) {
 		for (int i = 0; i < global_ignores->size; i++) {
-			int res = match(global_ignores->list[i], name);
-
-			if (res == 0) {
-				return 1;
+			if (PathMatchSpecA(name, global_ignores->list[i])) {
+				return true;
 			}
 		}
 	}
 
 	if (local_ignores != NULL) {
 		for (int i = 0; i < local_ignores->size; i++) {
-			int res = match(local_ignores->list[i], name);
-
-			if (res == 0) {
-				return 1;
+			if (PathMatchSpecA(name, local_ignores->list[i])) {
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 /* return 1 if breaking early (e.g. reaching limit) otherwise return 0 */
@@ -129,7 +122,7 @@ static int recurse_find(char **patterns, int *pattern_count, const char *dirname
 							matched = 1;
 						}
 					} else {
-						if (match(pattern, switches->wholename ? full_path : entry->d_name) == 0) {
+						if (PathMatchSpecA(switches->wholename ? full_path : entry->d_name, pattern)) {
 							matched = 1;
 						}
 					}
@@ -241,10 +234,7 @@ int main(int argc, char **argv) {
 			patterns[i++] = argv[optind++];
 		}
 
-		if (recurse_find(patterns, &pattern_count, root, &switches)) {
-			/* finished early because we reached the limit */
-		};
-
+		recurse_find(patterns, &pattern_count, root, &switches);
 		free(patterns);
 
 		if (unmatched_error && switches.count == 0) {
