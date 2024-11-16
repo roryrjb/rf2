@@ -17,7 +17,6 @@
 #define MAXPATHLEN 1024
 
 #include "ignore.h"
-#include "include/common/common.h"
 
 #define VERSION "2.0.0-alpha"
 #define RFIGNORE ".rfignore"
@@ -83,7 +82,7 @@ static int recurse_find(char **patterns, int *pattern_count, const char *dirname
 	DIR *dir;
 
 	char path[MAXPATHLEN] = {'\0'};
-	strlcat(path, dirname, MAXPATHLEN);
+	strcat_s(path, MAXPATHLEN, dirname);
 	dir = opendir(path);
 
 	if (dir != NULL && !excluded(dirname)) {
@@ -94,19 +93,13 @@ static int recurse_find(char **patterns, int *pattern_count, const char *dirname
 			int p = 0;
 
 			char full_path[MAXPATHLEN] = {'\0'};
-			strlcat(full_path, path, MAXPATHLEN);
+			strcat_s(full_path, MAXPATHLEN, path);
 
-#ifdef _WIN32
 			if (full_path[strlen(full_path) - 1] != '\\') {
-				strlcat(full_path, "\\", MAXPATHLEN);
+				strcat_s(full_path, MAXPATHLEN, "\\");
 			}
-#else
-			if (full_path[strlen(full_path) - 1] != '/') {
-				strlcat(full_path, "/", MAXPATHLEN);
-			}
-#endif
 
-			strlcat(full_path, entry->d_name, MAXPATHLEN);
+			strcat_s(full_path, MAXPATHLEN, entry->d_name);
 
 			struct stat entry_stat;
 
