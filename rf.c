@@ -12,10 +12,10 @@
 #include "getopt/getopt.h"
 #include <direct.h>
 #include <shlwapi.h>
+#include <shlobj.h>
 #pragma comment(lib, "shlwapi")
+#pragma comment(lib, "shell32")
 #define RFIGNORE_PATTERN "%s\\%s"
-#define HOME_ENV_VAR "USERPROFILE"
-#define MAXPATHLEN 1024
 
 #include "ignore.h"
 
@@ -74,8 +74,8 @@ static bool excluded(const char *name) {
 static int recurse_find(char **patterns, int *pattern_count, const char *dirname, struct switches *switches) {
 	DIR *dir;
 
-	char path[MAXPATHLEN] = {'\0'};
-	strcat_s(path, MAXPATHLEN, dirname);
+	char path[MAX_PATH] = {'\0'};
+	strcat_s(path, MAX_PATH, dirname);
 	dir = opendir(path);
 
 	if (dir != NULL && !excluded(dirname)) {
@@ -85,14 +85,14 @@ static int recurse_find(char **patterns, int *pattern_count, const char *dirname
 			int matched = 0;
 			int p = 0;
 
-			char full_path[MAXPATHLEN] = {'\0'};
-			strcat_s(full_path, MAXPATHLEN, path);
+			char full_path[MAX_PATH] = {'\0'};
+			strcat_s(full_path, MAX_PATH, path);
 
 			if (full_path[strlen(full_path) - 1] != '\\') {
-				strcat_s(full_path, MAXPATHLEN, "\\\\");
+				strcat_s(full_path, MAX_PATH, "\\\\");
 			}
 
-			strcat_s(full_path, MAXPATHLEN, entry->d_name);
+			strcat_s(full_path, MAX_PATH, entry->d_name);
 
 			struct stat entry_stat;
 
@@ -168,15 +168,16 @@ int main(int argc, char **argv) {
 	int ch;
 	char *remainder;
 	const char *root = ".";
-	char cwd[MAXPATHLEN];
+	char cwd[MAX_PATH];
 	int unmatched_error = 0;
 
-	if (_getcwd(cwd, MAXPATHLEN) == NULL) {
+	if (_getcwd(cwd, MAX_PATH) == NULL) {
 		perror("getcwd");
 		exit(EXIT_FAILURE);
 	}
 
-	char *home = getenv(HOME_ENV_VAR);
+	TCHAR home[MAX_PATH];
+	SHGetFolderPath(NULL, CSIDL_PROFILE, NULL, 0, home);
 
 	while ((ch = getopt(argc, argv, "d:l:svw")) > -1) {
 		switch (ch) {
@@ -216,11 +217,11 @@ int main(int argc, char **argv) {
 		}
 	}
 
-	char global_ignore_path[MAXPATHLEN];
-	char local_ignore_path[MAXPATHLEN];
+	char global_ignore_path[MAX_PATH];
+	char local_ignore_path[MAX_PATH];
 
-	snprintf(global_ignore_path, MAXPATHLEN, RFIGNORE_PATTERN, home, RFIGNORE);
-	snprintf(local_ignore_path, MAXPATHLEN, RFIGNORE_PATTERN, cwd, RFIGNORE);
+	snprintf(global_ignore_path, MAX_PATH, RFIGNORE_PATTERN, home, RFIGNORE);
+	snprintf(local_ignore_path, MAX_PATH, RFIGNORE_PATTERN, cwd, RFIGNORE);
 
 	global_ignores = init_ignores(global_ignore_path);
 	local_ignores = init_ignores(local_ignore_path);
